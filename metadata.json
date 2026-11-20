@@ -1,0 +1,6 @@
+{
+  "name": "CELL PHONE - Zoughaib Telecom",
+  "description": "New & used Gulf devices, phone sales, accessories, and expert in-shop repair in Zahle, Lebanon.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

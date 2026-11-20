@@ -1,0 +1,235 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "A phone or accessory item sold by CELL PHONE - Zoughaib Telecom.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140,
+          "description": "Product display name in English."
+        },
+        "nameAr": {
+          "type": "string",
+          "maxLength": 140,
+          "description": "Optional product display name in Arabic."
+        },
+        "brand": {
+          "type": "string",
+          "enum": ["iPhone", "Samsung", "Xiaomi", "Huawei", "Other", "Accessories"],
+          "description": "Device brand or Accessories shortcut."
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "description": "Product category (e.g., Phones, Audio, Chargers, Cases, Accessories)."
+        },
+        "price": {
+          "type": "number",
+          "description": "Current price in USD."
+        },
+        "oldPrice": {
+          "type": "number",
+          "description": "Optional previous price in USD before discount."
+        },
+        "storageOptions": {
+          "type": "array",
+          "description": "Available storage capacities (max 10)."
+        },
+        "colors": {
+          "type": "array",
+          "description": "Available color names (max 10)."
+        },
+        "condition": {
+          "type": "string",
+          "enum": ["New", "Used"],
+          "description": "Device condition."
+        },
+        "batteryHealth": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Battery health percentage or note for used phones."
+        },
+        "images": {
+          "type": "array",
+          "description": "Product image URLs or preset keys (max 10)."
+        },
+        "inStock": {
+          "type": "boolean",
+          "description": "True if available, false if sold out."
+        },
+        "isNew": {
+          "type": "boolean",
+          "description": "True to feature in the Latest Arrivals strip."
+        },
+        "isSale": {
+          "type": "boolean",
+          "description": "True if item is on sale."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Optional English product notes."
+        },
+        "descriptionAr": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Optional Arabic product notes."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["name", "brand", "category", "price", "condition", "inStock", "isNew", "isSale"]
+    },
+    "RepairService": {
+      "title": "RepairService",
+      "description": "A smartphone repair service offered in the Zahle shop.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "titleAr": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "descriptionAr": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "estimatedTime": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "estimatedTimeAr": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "startingPrice": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "iconKey": {
+          "type": "string",
+          "enum": ["screen", "battery", "port", "software", "camera", "speaker"]
+        },
+        "order": {
+          "type": "number"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["title", "iconKey", "order"]
+    },
+    "ShopSettings": {
+      "title": "ShopSettings",
+      "description": "Storefront configuration including hero images, contact info, hours, maps link, and gallery.",
+      "type": "object",
+      "properties": {
+        "heroImages": {
+          "type": "array",
+          "description": "Hero product showcase images (max 6)."
+        },
+        "heroTitle": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "heroTitleAr": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "heroSubtitle": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "heroSubtitleAr": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "whatsapp": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "whatsappNumber": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "address": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "addressAr": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "mapsEmbedUrl": {
+          "type": "string",
+          "maxLength": 800
+        },
+        "mapsLink": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "hours": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "hoursAr": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "facebookUrl": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "galleryImages": {
+          "type": "array",
+          "description": "Shop and device gallery image URLs (max 12)."
+        },
+        "adminInitialized": {
+          "type": "boolean"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["whatsapp", "whatsappNumber", "email", "address", "hours"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Publicly readable product catalog writable only by the shop admin."
+    },
+    "/repairs/{repairId}": {
+      "schema": { "$ref": "#/entities/RepairService" },
+      "description": "Publicly readable repair services list writable only by the shop admin."
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/ShopSettings" },
+      "description": "Publicly readable shop configuration (doc 'shop') writable only by the shop admin."
+    }
+  }
+}

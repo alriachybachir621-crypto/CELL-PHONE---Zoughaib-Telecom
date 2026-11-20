@@ -1,0 +1,185 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isShopAdmin() {
+      return isSignedIn()
+        && request.auth.token.email == "admin@zoughaibtelecom.app";
+    }
+
+    function isNonNegNumber(val) {
+      return (val is int || val is float) && val >= 0 && val <= 100000;
+    }
+
+    function isBoundedStringList(arr, maxLen) {
+      return arr is list
+        && arr.size() <= maxLen
+        && (arr.size() == 0 || (arr[0] is string && arr[0].size() <= 200000));
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll([
+          'name', 'brand', 'category', 'price', 'condition', 'inStock', 'isNew', 'isSale'
+        ])
+        && data.keys().hasOnly([
+          'name', 'nameAr', 'brand', 'category', 'price', 'oldPrice',
+          'storageOptions', 'colors', 'condition', 'batteryHealth',
+          'images', 'inStock', 'isNew', 'isSale', 'description', 'descriptionAr',
+          'createdAt', 'updatedAt'
+        ])
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 140
+        && (!('nameAr' in data) || (data.nameAr is string && data.nameAr.size() <= 140))
+        && data.brand in ['iPhone', 'Samsung', 'Xiaomi', 'Huawei', 'Other', 'Accessories']
+        && data.category is string && data.category.size() >= 1 && data.category.size() <= 60
+        && isNonNegNumber(data.price)
+        && (!('oldPrice' in data) || data.oldPrice == null || isNonNegNumber(data.oldPrice))
+        && (!('storageOptions' in data) || isBoundedStringList(data.storageOptions, 10))
+        && (!('colors' in data) || isBoundedStringList(data.colors, 10))
+        && data.condition in ['New', 'Used']
+        && (!('batteryHealth' in data) || (data.batteryHealth is string && data.batteryHealth.size() <= 40))
+        && (!('images' in data) || isBoundedStringList(data.images, 10))
+        && data.inStock is bool
+        && data.isNew is bool
+        && data.isSale is bool
+        && (!('description' in data) || (data.description is string && data.description.size() <= 1000))
+        && (!('descriptionAr' in data) || (data.descriptionAr is string && data.descriptionAr.size() <= 1000))
+        && (!('createdAt' in data) || data.createdAt is timestamp)
+        && (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    function isValidRepair(data) {
+      return data.keys().hasAll(['title', 'iconKey', 'order'])
+        && data.keys().hasOnly([
+          'title', 'titleAr', 'description', 'descriptionAr',
+          'estimatedTime', 'estimatedTimeAr', 'startingPrice',
+          'iconKey', 'order', 'updatedAt'
+        ])
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 120
+        && (!('titleAr' in data) || (data.titleAr is string && data.titleAr.size() <= 120))
+        && (!('description' in data) || (data.description is string && data.description.size() <= 400))
+        && (!('descriptionAr' in data) || (data.descriptionAr is string && data.descriptionAr.size() <= 400))
+        && (!('estimatedTime' in data) || (data.estimatedTime is string && data.estimatedTime.size() <= 60))
+        && (!('estimatedTimeAr' in data) || (data.estimatedTimeAr is string && data.estimatedTimeAr.size() <= 60))
+        && (!('startingPrice' in data) || (data.startingPrice is string && data.startingPrice.size() <= 40))
+        && data.iconKey in ['screen', 'battery', 'port', 'software', 'camera', 'speaker']
+        && (data.order is int || data.order is float) && data.order >= 0 && data.order <= 1000
+        && (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    function isValidShopSettings(data) {
+      return data.keys().hasAll(['whatsapp', 'whatsappNumber', 'email', 'address', 'hours'])
+        && data.keys().hasOnly([
+          'heroImages', 'heroTitle', 'heroTitleAr', 'heroSubtitle', 'heroSubtitleAr',
+          'whatsapp', 'whatsappNumber', 'email', 'address', 'addressAr',
+          'mapsEmbedUrl', 'mapsLink', 'hours', 'hoursAr', 'facebookUrl',
+          'galleryImages', 'adminInitialized', 'updatedAt'
+        ])
+        && (!('heroImages' in data) || isBoundedStringList(data.heroImages, 6))
+        && (!('heroTitle' in data) || (data.heroTitle is string && data.heroTitle.size() <= 120))
+        && (!('heroTitleAr' in data) || (data.heroTitleAr is string && data.heroTitleAr.size() <= 120))
+        && (!('heroSubtitle' in data) || (data.heroSubtitle is string && data.heroSubtitle.size() <= 240))
+        && (!('heroSubtitleAr' in data) || (data.heroSubtitleAr is string && data.heroSubtitleAr.size() <= 240))
+        && data.whatsapp is string && data.whatsapp.size() <= 30
+        && data.whatsappNumber is string && data.whatsappNumber.size() <= 20
+        && data.email is string && data.email.size() <= 120
+        && data.address is string && data.address.size() <= 240
+        && (!('addressAr' in data) || (data.addressAr is string && data.addressAr.size() <= 240))
+        && (!('mapsEmbedUrl' in data) || (data.mapsEmbedUrl is string && data.mapsEmbedUrl.size() <= 800))
+        && (!('mapsLink' in data) || (data.mapsLink is string && data.mapsLink.size() <= 500))
+        && data.hours is string && data.hours.size() <= 240
+        && (!('hoursAr' in data) || (data.hoursAr is string && data.hoursAr.size() <= 240))
+        && (!('facebookUrl' in data) || (data.facebookUrl is string && data.facebookUrl.size() <= 400))
+        && (!('galleryImages' in data) || isBoundedStringList(data.galleryImages, 12))
+        && (!('adminInitialized' in data) || data.adminInitialized is bool)
+        && (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    // Health check endpoint for startup connectivity check
+    match /test/connection {
+      allow get: if true;
+      allow list, write: if false;
+    }
+
+    match /products/{productId} {
+      allow get: if isValidId(productId);
+      allow list: if true;
+      allow create: if isShopAdmin()
+        && isValidId(productId)
+        && isValidProduct(incoming())
+        && (!('createdAt' in incoming()) || incoming().createdAt == request.time)
+        && (!('updatedAt' in incoming()) || incoming().updatedAt == request.time);
+      allow update: if isShopAdmin()
+        && isValidId(productId)
+        && isValidProduct(incoming())
+        && (!('createdAt' in existing()) || incoming().createdAt == existing().createdAt)
+        && (!('updatedAt' in incoming()) || incoming().updatedAt == request.time)
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'nameAr', 'brand', 'category', 'price', 'oldPrice',
+          'storageOptions', 'colors', 'condition', 'batteryHealth',
+          'images', 'inStock', 'isNew', 'isSale', 'description', 'descriptionAr',
+          'updatedAt'
+        ]);
+      allow delete: if isShopAdmin() && isValidId(productId);
+    }
+
+    match /repairs/{repairId} {
+      allow get: if isValidId(repairId);
+      allow list: if true;
+      allow create: if isShopAdmin()
+        && isValidId(repairId)
+        && isValidRepair(incoming())
+        && (!('updatedAt' in incoming()) || incoming().updatedAt == request.time);
+      allow update: if isShopAdmin()
+        && isValidId(repairId)
+        && isValidRepair(incoming())
+        && (!('updatedAt' in incoming()) || incoming().updatedAt == request.time)
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'titleAr', 'description', 'descriptionAr',
+          'estimatedTime', 'estimatedTimeAr', 'startingPrice',
+          'iconKey', 'order', 'updatedAt'
+        ]);
+      allow delete: if isShopAdmin() && isValidId(repairId);
+    }
+
+    match /settings/{settingId} {
+      allow get: if isValidId(settingId);
+      allow list: if true;
+      allow create: if isShopAdmin()
+        && isValidId(settingId)
+        && isValidShopSettings(incoming())
+        && (!('updatedAt' in incoming()) || incoming().updatedAt == request.time);
+      allow update: if isShopAdmin()
+        && isValidId(settingId)
+        && isValidShopSettings(incoming())
+        && (!('updatedAt' in incoming()) || incoming().updatedAt == request.time)
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'heroImages', 'heroTitle', 'heroTitleAr', 'heroSubtitle', 'heroSubtitleAr',
+          'whatsapp', 'whatsappNumber', 'email', 'address', 'addressAr',
+          'mapsEmbedUrl', 'mapsLink', 'hours', 'hoursAr', 'facebookUrl',
+          'galleryImages', 'adminInitialized', 'updatedAt'
+        ]);
+      allow delete: if isShopAdmin() && isValidId(settingId);
+    }
+  }
+}
